@@ -1,38 +1,67 @@
+local blockedModels = {
+    -- Bikes
+    `bati`,
+    `bati2`,
+    `akuma`,
+    `sanchez`,
+    `sanchez2`,
+    `daemon`,
+    `double`,
+    `faggio`,
+    `lectro`,
+    `nemesis`,
+    `pcj`,
+    `ruffian`,
+    `vader`,
+
+    -- Planes
+    `jet`,
+    `luxor`,
+    `luxor2`,
+    `shamal`,
+    `titan`,
+    `dodo`,
+    `hydra`,
+    `lazer`,
+    `besra`,
+    `miljet`,
+    `cuban800`,
+    `velum`,
+    `velum2`,
+    `nimbus`
+}
+
+-- Convert to lookup table for speed
+local blockedLookup = {}
+for _, model in pairs(blockedModels) do
+    blockedLookup[model] = true
+end
+
+AddEventHandler("entityCreating", function(entity)
+    if GetEntityType(entity) ~= 2 then return end -- Not a vehicle
+
+    local model = GetEntityModel(entity)
+
+    if blockedLookup[model] then
+        CancelEvent()
+        print("Blocked forbidden vehicle spawn: " .. model)
+    end
+end)
+
 RegisterNetEvent("disableVehicles:deleteVehicle", function()
     local src = source
     local ped = GetPlayerPed(src)
 
-    if not ped or ped == 0 then return end
+    if ped == 0 then return end
 
     local vehicle = GetVehiclePedIsIn(ped, false)
 
     if vehicle ~= 0 then
-        local class = GetVehicleClass(vehicle)
+        local model = GetEntityModel(vehicle)
 
-        -- FULL DISABLE: ALL PLANES + ALL BIKES
-        if class == 16 or class == 8 then
+        if blockedLookup[model] then
             DeleteEntity(vehicle)
-
-            print(("🚫 Forbidden vehicle removed from player %s"):format(src))
-
-            -- Optional: Kick player if they keep trying
-            -- DropPlayer(src, "Planes and motorbikes are disabled on this server.")
+            print(("🚫 Removed forbidden vehicle from player %s"):format(src))
         end
     end
 end)
-
-AddEventHandler("entityCreating", function(entity)
-    local entType = GetEntityType(entity)
-
-    if entType == 2 then -- Vehicle
-        local model = GetEntityModel(entity)
-        local class = GetVehicleClassFromName(model)
-
-        -- Block ALL planes + bikes
-        if class == 16 or class == 8 then
-            CancelEvent()
-            print("🚫 Blocked forbidden vehicle spawn (Plane/Bike)")
-        end
-    end
-end)
-
